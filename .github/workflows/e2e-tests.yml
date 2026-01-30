@@ -1,0 +1,55 @@
+name: E2E Automation Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: '実行するテストを選択'
+        required: true
+        type: choice
+        options:
+          - charge1
+          - charge2
+          - both
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: チェックアウト
+      uses: actions/checkout@v4
+    
+    - name: Python環境のセットアップ
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: 依存関係のインストール
+      run: |
+        python -m pip install --upgrade pip
+        pip install playwright==1.40.0
+        playwright install chromium
+        playwright install-deps chromium
+    
+    - name: 請求1決済テスト
+      if: ${{ github.event.inputs.test_type == 'charge1' || github.event.inputs.test_type == 'both' }}
+      env:
+        HEADLESS: 'true'
+      run: python Code/charge1combo_new.py
+      continue-on-error: true
+    
+    - name: 配送指定テスト
+      if: ${{ github.event.inputs.test_type == 'charge2' || github.event.inputs.test_type == 'both' }}
+      env:
+        HEADLESS: 'true'
+      run: python Code/charge2.py
+      continue-on-error: true
+    
+    - name: ビデオのアップロード
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-videos
+        path: videos/
+        retention-days: 7
