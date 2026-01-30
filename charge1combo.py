@@ -1,6 +1,10 @@
+import os
 import re
 from playwright.sync_api import Playwright, sync_playwright, expect
 import time
+
+# 環境変数でヘッドレスモードを制御
+HEADLESS = os.getenv('HEADLESS', 'false').lower() == 'true' 
 
 # 管理画面の設定
 ADMIN_LOGIN_URL = "https://www-uat1.fromjapan.dev/japan/adminfj"
@@ -270,7 +274,7 @@ def run(playwright: Playwright) -> None:
 
     # ブラウザを1回だけ起動
     video_dir = "videos/"
-    browser = playwright.chromium.launch(headless=False)
+    browser = playwright.chromium.launch(headless=HEADLESS) 
     context = browser.new_context(
         viewport={"width": 1280, "height": 720},
         record_video_dir=video_dir
